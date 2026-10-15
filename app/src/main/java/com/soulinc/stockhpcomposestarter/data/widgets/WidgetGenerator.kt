@@ -42,6 +42,19 @@ class WidgetGenerator {
         )
     }
 
+    fun createCommonStockWidgetWithoutBroadcast(id: Int, name: String): SparkHomeBaseModel {
+        val stocks = scripItems.shuffled().take(WIDGET_ITEM_COUNT)
+        return SparkHomeCommonStockWithoutBroadcastWiget(
+            widget = CommonStockWidget(
+                id = name,
+                analyticsId = "analytics_$name",
+                title = "Widget Name $id",
+                showViewAll = true,
+                stocks = stocks
+            )
+        )
+    }
+
     fun createCommonStockWithFilterWidget(id: Int, name: String): SparkHomeBaseModel {
         val stocks = scripItems.shuffled().take(WIDGET_ITEM_COUNT)
         return SparkHomeCommonStockWithFilterWidgetModel(

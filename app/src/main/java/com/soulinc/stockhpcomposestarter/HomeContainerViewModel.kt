@@ -33,7 +33,11 @@ class HomeContainerViewModel: ViewModel() {
 
     private fun loadWidgets() {
         _currentList.value = List(WIDGET_COUNT) { index ->
-            widgetGenerator.createCommonStockWidget(index, "common_stock_$index")
+            if (index % 2 == 0) {
+                widgetGenerator.createCommonStockWidget(index, "common_stock_$index")
+            } else {
+                widgetGenerator.createCommonStockWidgetWithoutBroadcast(index, "common_stock_$index")
+            }
         }
         startBroadcast()
     }
@@ -58,6 +62,7 @@ class HomeContainerViewModel: ViewModel() {
 
     private fun buildBroadcastRequestList(models: List<SparkHomeBaseModel>): List<PriceTickResponse> {
         return models
+            .filter { it is Broadcastable }
             .flatMap { model ->
                 when (model) {
                     is SparkHomeCommonStockWidgetModel -> model.widget.stocks
@@ -76,9 +81,10 @@ class HomeContainerViewModel: ViewModel() {
                     tokenId = it.tokenId
                 )
             }
+            .toList()
     }
 
     private companion object {
-        const val WIDGET_COUNT = 2
+        const val WIDGET_COUNT = 3
     }
 }
