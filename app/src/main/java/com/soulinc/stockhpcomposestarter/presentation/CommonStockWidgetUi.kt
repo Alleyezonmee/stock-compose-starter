@@ -17,12 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.soulinc.stockhpcomposestarter.data.widgets.CommonStockWidget
-import com.soulinc.stockhpcomposestarter.data.widgets.ScripItemVertical
+import com.soulinc.stockhpcomposestarter.presentation.model.CommonStockWidgetUiModel
 
 @Composable
 fun CommonStockWidgetUi(
-    widget: CommonStockWidget,
+    widget: CommonStockWidgetUiModel,
     modifier: Modifier = Modifier,
     onViewAllClick: () -> Unit = {}
 ) {
@@ -54,7 +53,7 @@ fun CommonStockWidgetUi(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = widget.stocks.filterIsInstance<ScripItemVertical>(),
+                items = widget.scrips,
                 key = { it.id }
             ) { scrip ->
                 ScripItemVerticalUi(scrip)

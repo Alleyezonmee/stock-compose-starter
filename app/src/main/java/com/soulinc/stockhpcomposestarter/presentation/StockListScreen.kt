@@ -10,23 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soulinc.stockhpcomposestarter.HomeContainerViewModel
-import com.soulinc.stockhpcomposestarter.data.widgets.SparkHomeCommonStockWidgetModel
-import com.soulinc.stockhpcomposestarter.data.widgets.SparkHomeCommonStockWithoutBroadcastWiget
+import com.soulinc.stockhpcomposestarter.presentation.model.CommonStockWidgetUiModel
 
 @Composable
 fun StockListScreen(vm: HomeContainerViewModel, modifier: Modifier = Modifier) {
-    val list by vm.currentList.collectAsStateWithLifecycle()
+    val list by vm.uiList.collectAsStateWithLifecycle()
 
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        items(items = list, key = { it.widget.id }) { item ->
+        items(items = list, key = { it.id }) { item ->
             when (item) {
-                is SparkHomeCommonStockWidgetModel -> CommonStockWidgetUi(item.widget)
-                is SparkHomeCommonStockWithoutBroadcastWiget -> CommonStockWidgetUi(item.widget)
-                else -> Unit
+                is CommonStockWidgetUiModel -> CommonStockWidgetUi(item)
             }
         }
     }

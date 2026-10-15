@@ -118,7 +118,7 @@ class WidgetGenerator {
     }
 
     private companion object {
-        const val WIDGET_ITEM_COUNT = 2
+        const val WIDGET_ITEM_COUNT = 5
         const val SEED = 42
     }
 }

@@ -16,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,16 +27,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.soulinc.stockhpcomposestarter.data.widgets.ScripItemVertical
+import com.soulinc.stockhpcomposestarter.presentation.model.PriceUiModel
+import com.soulinc.stockhpcomposestarter.presentation.model.ScripUiModel
 import com.soulinc.stockhpcomposestarter.ui.theme.StockHpComposeStarterTheme
 
 private val PositiveColor = Color(0xFF1B9E4B)
 private val NegativeColor = Color(0xFFD93025)
 
 @Composable
-fun ScripItemVerticalUi(item: ScripItemVertical, modifier: Modifier = Modifier) {
-    val changeColor = if (item.change >= 0) PositiveColor else NegativeColor
-
+fun ScripItemVerticalUi(scrip: ScripUiModel, modifier: Modifier = Modifier) {
     OutlinedCard(
         modifier = modifier.width(140.dp),
         shape = RoundedCornerShape(8.dp),
@@ -54,7 +55,7 @@ fun ScripItemVerticalUi(item: ScripItemVertical, modifier: Modifier = Modifier) 
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = item.scripName.take(1),
+                    text = scrip.name.take(1),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
@@ -63,7 +64,7 @@ fun ScripItemVerticalUi(item: ScripItemVertical, modifier: Modifier = Modifier) 
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = item.scripName,
+                text = scrip.name,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -71,43 +72,35 @@ fun ScripItemVerticalUi(item: ScripItemVertical, modifier: Modifier = Modifier) 
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
-                text = item.ltp,
-                color = changeColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            Text(
-                text = "${"%.2f".format(item.change)} (${item.changePer}%)",
-                color = changeColor,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            ScripPrice(scrip.price)
         }
     }
 }
 
-@Preview(showBackground = true)
+/**
+ * The only composable that reads the price state, so a tick recomposes just this scope.
+ */
 @Composable
-private fun ScripItemVerticalUiPreview() {
-    StockHpComposeStarterTheme {
-        ScripItemVerticalUi(
-            ScripItemVertical(
-                id = "1",
-                analyticsId = "a1",
-                scripName = "Reliance Industries",
-                scripIcon = "",
-                ltp = "2450.35",
-                change = -12.4,
-                changePer = "-0.50",
-                tokenId = "1000",
-                segmentId = "1"
-            ),
-            modifier = Modifier.padding(16.dp)
+private fun ScripPrice(priceState: State<PriceUiModel>) {
+    val price = priceState.value
+    val color = if (price.isPositive) PositiveColor else NegativeColor
+
+    Column {
+        Text(
+            text = price.ltp,
+            color = color,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(Modifier.height(2.dp))
+
+        Text(
+            text = price.changeText,
+            color = color,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
