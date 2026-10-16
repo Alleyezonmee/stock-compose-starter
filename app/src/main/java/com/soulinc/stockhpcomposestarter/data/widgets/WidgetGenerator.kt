@@ -78,13 +78,13 @@ class WidgetGenerator {
                             "filter_id_2",
                             "analytics_filter2",
                             "Filter 2",
-                            true
+                            false
                         ),
                         SparkFilterTabItemModel(
                             "filter_id_3",
                             "analytics_filter3",
                             "Filter 3",
-                            true
+                            false
                         )
                     )
                 )
@@ -97,6 +97,10 @@ class WidgetGenerator {
             }
         )
     }
+
+    /** A fresh random pick from the 50 scrips, e.g. the contents of a newly selected filter. */
+    fun randomScrips(count: Int = WIDGET_ITEM_COUNT): List<ScripItemVertical> =
+        scripItems.shuffled().take(count)
 
     private fun createScripItems(): List<ScripItemVertical> {
         val random = Random(SEED)

@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.soulinc.stockhpcomposestarter.presentation.model.CommonStockWidgetUiModel
+import com.soulinc.stockhpcomposestarter.presentation.model.ScripUiModel
 
 @Composable
 fun CommonStockWidgetUi(
@@ -26,38 +27,52 @@ fun CommonStockWidgetUi(
     onViewAllClick: () -> Unit = {}
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = widget.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-            if (widget.showViewAll) {
-                TextButton(onClick = onViewAllClick) {
-                    Text(text = "View All")
-                }
+        WidgetHeader(widget.title, widget.showViewAll, onViewAllClick)
+        ScripRow(widget.scrips)
+    }
+}
+
+/** Title on the left, optional "View All" button on the right. */
+@Composable
+internal fun WidgetHeader(
+    title: String,
+    showViewAll: Boolean,
+    onViewAllClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        if (showViewAll) {
+            TextButton(onClick = onViewAllClick) {
+                Text(text = "View All")
             }
         }
+    }
+}
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(
-                items = widget.scrips,
-                key = { it.id }
-            ) { scrip ->
-                ScripItemVerticalUi(scrip)
-            }
+@Composable
+internal fun ScripRow(scrips: List<ScripUiModel>) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(
+            items = scrips,
+            key = { it.id }
+        ) { scrip ->
+            ScripItemVerticalUi(scrip)
         }
     }
 }

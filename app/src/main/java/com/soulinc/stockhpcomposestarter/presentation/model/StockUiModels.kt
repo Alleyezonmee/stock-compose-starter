@@ -35,3 +35,20 @@ data class CommonStockWidgetUiModel(
     val showViewAll: Boolean,
     val scrips: List<ScripUiModel>
 ) : HomeItemUiModel
+
+@Immutable
+data class FilterTabUiModel(
+    val id: String,
+    val name: String,
+    val isSelected: Boolean
+)
+
+/** Replaced in the UI list as a whole when a filter is picked, since its scrips change. */
+@Stable
+data class CommonStockWithFilterWidgetUiModel(
+    override val id: String,
+    val title: String,
+    val showViewAll: Boolean,
+    val tabs: List<FilterTabUiModel>,
+    val scrips: List<ScripUiModel>
+) : HomeItemUiModel

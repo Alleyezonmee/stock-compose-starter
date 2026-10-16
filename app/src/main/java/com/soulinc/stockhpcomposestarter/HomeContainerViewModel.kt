@@ -3,9 +3,11 @@ package com.soulinc.stockhpcomposestarter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soulinc.stockhpcomposestarter.data.broadcast.BroadcastMimic
+import com.soulinc.stockhpcomposestarter.data.broadcast.BroadcastRequest
 import com.soulinc.stockhpcomposestarter.data.broadcast.Broadcastable
 import com.soulinc.stockhpcomposestarter.data.broadcast.PriceTickResponse
 import com.soulinc.stockhpcomposestarter.data.widgets.SparkHomeBaseModel
+import com.soulinc.stockhpcomposestarter.data.widgets.SparkHomeCommonStockWithFilterWidgetModel
 import com.soulinc.stockhpcomposestarter.data.widgets.WidgetGenerator
 import com.soulinc.stockhpcomposestarter.presentation.model.HomeItemUiModel
 import com.soulinc.stockhpcomposestarter.presentation.model.ScripPriceStore
@@ -14,6 +16,7 @@ import com.soulinc.stockhpcomposestarter.presentation.model.toUiModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -38,14 +41,42 @@ class HomeContainerViewModel: ViewModel() {
 
     private fun loadWidgets() {
         _currentList.value = List(WIDGET_COUNT) { index ->
-            if (index % 3 != 0) {
-                widgetGenerator.createCommonStockWidget(index, "common_stock_$index")
-            } else {
-                widgetGenerator.createCommonStockWidgetWithoutBroadcast(index, "common_stock_$index")
+            when (index % 3) {
+                0 -> widgetGenerator.createCommonStockWidgetWithoutBroadcast(index, "common_stock_$index")
+                1 -> widgetGenerator.createCommonStockWidget(index, "common_stock_$index")
+                else -> widgetGenerator.createCommonStockWithFilterWidget(index, "common_stock_filter_$index")
             }
         }
         priceStore.clear()
         _uiList.value = _currentList.value.mapNotNull { it.toUiModel(priceStore) }
+        startBroadcast()
+    }
+
+    /**
+     * Selects [tabId] on the filter widget [widgetId] and swaps in a fresh set of scrips. Only that
+     * widget's item changes in [uiList]; the new scrips are then subscribed to the feed.
+     */
+    fun onFilterSelected(widgetId: String, tabId: String) {
+        val model = _currentList.value.firstOrNull { it.widget.id == widgetId }
+                as? SparkHomeCommonStockWithFilterWidgetModel ?: return
+        val tab = model.widget.tabs.list.firstOrNull { it.id == tabId } ?: return
+        if (tab.isSelected) return
+
+        val scrips = widgetGenerator.randomScrips()
+        val updated = model.copy(
+            widget = model.widget.copy(
+                stockList = scrips,
+                tabs = model.widget.tabs.copy(
+                    list = model.widget.tabs.list.map { it.copy(isSelected = it.id == tabId) }
+                )
+            ),
+            broadcastRequest = scrips.map { BroadcastRequest(segmentId = it.segmentId, tokenId = it.tokenId) }
+        )
+
+        _currentList.update { list -> list.map { if (it.widget.id == widgetId) updated else it } }
+        val updatedUi = updated.toUiModel(priceStore) ?: return
+        _uiList.update { list -> list.map { if (it.id == widgetId) updatedUi else it } }
+        // The feed was seeded with the old scrips; restart it so the new ones receive ticks too.
         startBroadcast()
     }
 
