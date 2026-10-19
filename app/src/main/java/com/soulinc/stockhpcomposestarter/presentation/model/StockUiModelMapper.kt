@@ -2,6 +2,7 @@ package com.soulinc.stockhpcomposestarter.presentation.model
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import com.soulinc.stockhpcomposestarter.data.broadcast.PriceTickResponse
 import com.soulinc.stockhpcomposestarter.data.widgets.CommonStockWidget
 import com.soulinc.stockhpcomposestarter.data.widgets.CommonStockWithFilterWidget
 import com.soulinc.stockhpcomposestarter.data.widgets.ScripItemVertical
@@ -32,6 +33,13 @@ fun ScripItemVertical.toPriceUiModel() = PriceUiModel(
     ltp = ltp,
     changeText = "${"%.2f".format(change)} ($changePer%)",
     isPositive = change >= 0
+)
+
+/** Maps a raw broadcast tick to the price shown on a card. `change`/`changePer` are pre-formatted. */
+fun PriceTickResponse.toPriceUiModel() = PriceUiModel(
+    ltp = lastPrice,
+    changeText = "$change ($changePer%)",
+    isPositive = (change.toDoubleOrNull() ?: 0.0) >= 0
 )
 
 private fun CommonStockWidget.toUiModel(

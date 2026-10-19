@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 
 class HomeContainerViewModel: ViewModel() {
@@ -27,6 +28,10 @@ class HomeContainerViewModel: ViewModel() {
     private val broadcastMimic = BroadcastMimic()
     private val priceStore = ScripPriceStore()
     private var broadcastJob: Job? = null
+
+    // Single live price cache (latest tick per `segmentId_tokenId`). Every tick from the mimic is
+    // merged into it, and the price store updates itself from it.
+    private val broadcastCache = ConcurrentHashMap<String, PriceTickResponse>()
 
     private var _currentList = MutableStateFlow<List<SparkHomeBaseModel>>(emptyList())
     val currentList = _currentList.asStateFlow()
@@ -82,24 +87,19 @@ class HomeContainerViewModel: ViewModel() {
 
     /**
      * Subscribes to the mimic feed for every scrip currently on screen. Each tick snapshot is
-     * applied to the list through [Broadcastable.parseBroadcast], and the scrips whose price
-     * changed are pushed into [priceStore] so only their price text recomposes.
+     * merged into [broadcastCache], and [priceStore] then updates itself from that cache so only
+     * the scrips whose price text changed recompose.
      */
     private fun startBroadcast() {
         broadcastJob?.cancel()
         val broadcastRequestList = buildBroadcastRequestList(_currentList.value)
+        broadcastCache.clear()
         broadcastJob = viewModelScope.launch {
             broadcastMimic.ticks(broadcastRequestList).collect { ticks ->
-                val updated = _currentList.value.map { model ->
-                    if (model is Broadcastable) model.parseBroadcast(model, ticks) else model
-                }
-                _currentList.value = updated
-                // Flatten to unique scrips so a scrip shown in several widgets is updated once.
-                updated
-                    .filter { it is Broadcastable }
-                    .flatMap { it.scripItems() }
-                    .distinctBy { it.segmentId to it.tokenId }
-                    .forEach(priceStore::update)
+                // Everything coming from the mimic updates the single broadcast cache,
+                broadcastCache.putAll(ticks)
+                // then the price store updates itself from that cache.
+                priceStore.update(broadcastCache)
             }
         }
     }

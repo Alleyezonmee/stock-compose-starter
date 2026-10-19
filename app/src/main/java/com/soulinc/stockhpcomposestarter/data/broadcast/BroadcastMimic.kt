@@ -18,7 +18,8 @@ class BroadcastMimic(private val random: Random = Random.Default) {
 
     /**
      * Cold flow: every collection starts a fresh feed from [initialTicks]; cancelling the
-     * collector stops it.
+     * collector stops it. Each emission is a snapshot of the scrips that changed on that tick,
+     * which the consumer merges into its own broadcast cache.
      */
     fun ticks(initialTicks: List<PriceTickResponse>): Flow<ConcurrentHashMap<String, PriceTickResponse>> = flow {
         // Previous close is fixed for the "day": change = ltp - prevClose.
